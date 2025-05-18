@@ -6,6 +6,8 @@ import 'package:music_sheet_pro/core/services/service_locator.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:music_sheet_pro/presentation/viewer/pdf_viewer_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class ViewerScreen extends StatefulWidget {
   final String? musicId;
@@ -32,8 +34,44 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
   Future<void> _importContent() async {
     try {
-      // Seletor de arquivos
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      // Verificar e solicitar permissões
+      PermissionStatus status;
+
+      if (Platform.isAndroid) {
+        // No Android, precisamos de permissão de armazenamento
+        status = await Permission.storage.status;
+        if (!status.isGranted) {
+          status = await Permission.storage.request();
+
+          // Para Android 11+ (API level 30+)
+          if (!status.isGranted) {
+            if (await Permission.manageExternalStorage.request().isGranted) {
+              status = PermissionStatus.granted;
+            }
+          }
+        }
+      } else if (Platform.isIOS) {
+        // No iOS, as permissões são tratadas pelo seletor de arquivos
+        status = PermissionStatus.granted;
+      } else {
+        // Outras plataformas
+        status = PermissionStatus.granted;
+      }
+
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Permissão de acesso aos arquivos negada. Não é possível importar partituras.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Agora que temos permissão, podemos selecionar o arquivo
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
@@ -55,16 +93,24 @@ class _ViewerScreenState extends State<ViewerScreen> {
         _loadMusic();
 
         // Mostrar mensagem de sucesso
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$fileName importado com sucesso')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$fileName importado com sucesso')),
+          );
+        }
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao importar: $e')),
+        );
+      }
     }
-  }
+  } //_importContent
 
   Future<void> _loadMusic() async {
     if (widget.musicId == null) {

@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Precisamos acessar seus arquivos para importar músicas</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>Precisamos acessar seus documentos para importar músicas</string>
 </dict>
 </plist>

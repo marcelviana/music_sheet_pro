@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	    <!-- Permissão para ler documentos -->
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>Precisamos acessar seus documentos para importar partituras</string>
+    
+    <!-- Permissão para ler downloads -->
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Precisamos acessar seus downloads para importar partituras</string>
+    
+    <!-- Permissões para acessar o sistema de arquivos -->
+    <key>UISupportsDocumentBrowser</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 </dict>
 </plist>

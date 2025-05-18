@@ -12,16 +12,5 @@ void main() {
 
   WidgetsFlutterBinding.ensureInitialized();
   setupServiceLocator();
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    final errorString = details.toString();
-    if (errorString.contains('multiple heroes that share the same tag')) {
-      debugPrint('===== HERO TAG DUPLICADO DETECTADO =====');
-      debugPrint(errorString);
-      debugPrintStack(stackTrace: details.stack);
-    }
-    FlutterError.dumpErrorToConsole(details);
-  };
-
   runApp(const App());
 }

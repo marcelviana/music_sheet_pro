@@ -1,4 +1,4 @@
-# Documentação Revisada do MusicSheet Pro
+# Documentação do MusicSheet Pro
 
 ## 1. Visão Geral do Projeto
 

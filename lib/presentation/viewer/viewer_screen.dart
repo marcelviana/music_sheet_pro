@@ -5,7 +5,8 @@ import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
 import 'package:music_sheet_pro/core/services/service_locator.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:music_sheet_pro/presentation/viewer/pdf_viewer_screen.dart';
+import 'package:music_sheet_pro/presentation/viewer/enhanced_pdf_viewer_screen.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 
@@ -252,7 +253,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PdfViewerScreen(
+                    builder: (context) => EnhancedPdfViewerScreen(
                       filePath: _contents.first.contentPath,
                       title: _music!.title,
                     ),

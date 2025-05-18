@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:music_sheet_pro/presentation/library/library_screen.dart';
 import 'package:music_sheet_pro/presentation/setlists/setlists_screen.dart';
 import 'package:music_sheet_pro/presentation/viewer/viewer_screen.dart';
+import 'package:music_sheet_pro/presentation/viewer/enhanced_pdf_viewer_screen.dart';
 import 'package:music_sheet_pro/presentation/home/home_screen.dart';
 
 // Em lib/app/routes.dart:
@@ -10,7 +11,8 @@ class AppRoutes {
   static const String library = '/library';
   static const String viewer = '/viewer';
   static const String setlists = '/setlists';
-  
+  static const String enhancedViewer = '/enhanced-viewer';
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case home:
@@ -22,6 +24,14 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => ViewerScreen(musicId: args?.musicId));
       case setlists:
         return MaterialPageRoute(builder: (_) => const SetlistsScreen());
+      case enhancedViewer:
+        final args = settings.arguments as EnhancedViewerScreenArgs;
+        return MaterialPageRoute(
+          builder: (_) => EnhancedPdfViewerScreen(
+            filePath: args.filePath,
+            title: args.title,
+          ),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
@@ -32,6 +42,13 @@ class AppRoutes {
         );
     }
   }
+}
+
+class EnhancedViewerScreenArgs {
+  final String filePath;
+  final String title;
+  
+  EnhancedViewerScreenArgs({required this.filePath, required this.title});
 }
 
 class ViewerScreenArgs {

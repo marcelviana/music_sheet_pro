@@ -59,6 +59,9 @@ dependencies:
   # Permissões
   permission_handler: ^12.0.0+1
 
+  # Para o enhanced pdfviewer
+  wakelock: ^0.4.0
+
 
 dev_dependencies:
   flutter_test:

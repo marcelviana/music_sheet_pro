@@ -590,7 +590,3 @@ AppDocumentsDirectory/
 4. **Processamento Avançado de Áudio**:
    - Análise de ritmo para metrônomo automático
    - Detecção de acordes a partir de áudio
-
----
-
-Esta documentação revisada para o MusicSheet Pro reflete as mudanças importantes no escopo do projeto, enfatizando a criação, importação e visualização otimizada de diferentes tipos de conteúdo musical (partituras, tablaturas e letras), bem como a possibilidade de entrada direta de conteúdo no aplicativo. O documento serve como referência abrangente para o desenvolvimento do projeto, detalhando sua arquitetura, funcionalidades, desafios e soluções.

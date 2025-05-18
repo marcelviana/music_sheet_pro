@@ -21,7 +21,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const LibraryScreen());
       case viewer:
         final args = settings.arguments as ViewerScreenArgs?;
-        return MaterialPageRoute(builder: (_) => ViewerScreen(musicId: args?.musicId));
+        return MaterialPageRoute(
+            builder: (_) => ViewerScreen(musicId: args?.musicId));
       case setlists:
         return MaterialPageRoute(builder: (_) => const SetlistsScreen());
       case enhancedViewer:
@@ -30,6 +31,7 @@ class AppRoutes {
           builder: (_) => EnhancedPdfViewerScreen(
             filePath: args.filePath,
             title: args.title,
+            contentId: args.contentId,
           ),
         );
       default:
@@ -47,12 +49,14 @@ class AppRoutes {
 class EnhancedViewerScreenArgs {
   final String filePath;
   final String title;
-  
-  EnhancedViewerScreenArgs({required this.filePath, required this.title});
+  final String contentId;
+
+  EnhancedViewerScreenArgs(
+      {required this.filePath, required this.title, required this.contentId});
 }
 
 class ViewerScreenArgs {
   final String? musicId;
-  
+
   ViewerScreenArgs({this.musicId});
 }

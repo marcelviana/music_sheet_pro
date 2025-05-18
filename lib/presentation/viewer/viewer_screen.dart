@@ -256,6 +256,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
                     builder: (context) => EnhancedPdfViewerScreen(
                       filePath: _contents.first.contentPath,
                       title: _music!.title,
+                      contentId: _contents.first.id,
                     ),
                   ),
                 );

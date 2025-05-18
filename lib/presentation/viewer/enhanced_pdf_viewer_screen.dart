@@ -4,15 +4,21 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'dart:io';
 import 'package:wakelock/wakelock.dart';
 import 'dart:async';
+import 'package:music_sheet_pro/core/models/annotation.dart';
+import 'package:music_sheet_pro/domain/repositories/annotation_repository.dart';
+import 'package:music_sheet_pro/core/services/service_locator.dart';
+import 'package:uuid/uuid.dart';
 
 class EnhancedPdfViewerScreen extends StatefulWidget {
   final String filePath;
   final String title;
+  final String contentId;
 
   const EnhancedPdfViewerScreen({
     super.key,
     required this.filePath,
     required this.title,
+    required this.contentId,
   });
 
   @override
@@ -21,6 +27,9 @@ class EnhancedPdfViewerScreen extends StatefulWidget {
 }
 
 class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
+  final AnnotationRepository _annotationRepository =
+      serviceLocator<AnnotationRepository>();
+  final _uuid = const Uuid();
   final PdfViewerController _pdfViewerController = PdfViewerController();
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
 
@@ -31,8 +40,8 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
   double _currentZoom = 1.0;
   String? _error;
 
-  // Anotações (simplificado para iniciar)
-  final List<PdfAnnotation> _annotations = [];
+  // Anotações
+  List<PdfAnnotation> _annotations = [];
 
   // Auto-scroll
   bool _isAutoScrolling = false;
@@ -42,8 +51,96 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
   @override
   void initState() {
     super.initState();
-    // Verificar se o arquivo existe
     _checkFileExists();
+    _loadAnnotations();
+  }
+
+  Future<void> _loadAnnotations() async {
+    try {
+      final annotations = await _annotationRepository
+          .getAnnotationsForContent(widget.contentId);
+      setState(() {
+        _annotations = List<PdfAnnotation>.from(annotations);
+      });
+    } catch (e) {
+      print('Error loading annotations: $e');
+      // Opcional: mostrar snackbar com erro
+    }
+  }
+
+  Future<void> _addAnnotation(Offset position) async {
+    final newAnnotation = PdfAnnotation(
+      id: _uuid.v4(),
+      contentId: widget.contentId,
+      pageNumber: _pdfViewerController.pageNumber,
+      xPosition: position.dx,
+      yPosition: position.dy,
+      text: 'Anotação ${_annotations.length + 1}',
+      colorValue: Colors.yellow.value,
+    );
+
+    try {
+      await _annotationRepository.addAnnotation(newAnnotation);
+      setState(() {
+        _annotations.add(newAnnotation);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Anotação adicionada!'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao adicionar anotação: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateAnnotation(PdfAnnotation annotation,
+      {String? newText, Color? newColor}) async {
+    try {
+      final updatedAnnotation = annotation.copyWith(
+        text: newText,
+        colorValue: newColor?.value,
+      );
+
+      await _annotationRepository.updateAnnotation(updatedAnnotation);
+
+      setState(() {
+        final index = _annotations.indexWhere((a) => a.id == annotation.id);
+        if (index != -1) {
+          _annotations[index] = updatedAnnotation;
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao atualizar anotação: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteAnnotation(String id) async {
+    try {
+      await _annotationRepository.deleteAnnotation(id);
+      setState(() {
+        _annotations.removeWhere((a) => a.id == id);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao excluir anotação: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -171,29 +268,6 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
         _startAutoScroll();
       }
     });
-  }
-
-  // Simplificado para iniciar
-  void _addAnnotation(Offset position) {
-    if (!mounted) return;
-    setState(() {
-      _annotations.add(
-        PdfAnnotation(
-          pageNumber: _pdfViewerController.pageNumber,
-          position: position,
-          text: 'Anotação ${_annotations.length + 1}',
-          color: Colors.yellow,
-        ),
-      );
-    });
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Anotação adicionada!'),
-        duration: Duration(seconds: 1),
-      ),
-    );
   }
 
   @override
@@ -397,30 +471,15 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
   }
 
   List<Widget> _buildAnnotationMarkers() {
-    return _annotations.map((annotation) {
-      // Simplificado - numa implementação completa, seria necessário converter
-      // a posição da anotação para coordenadas na tela
+    return _annotations
+        .where((a) => a.pageNumber == _pdfViewerController.pageNumber)
+        .map((annotation) {
       return Positioned(
-        // Posição aproximada - implementação real precisaria de cálculo
-        // baseado no zoom e posição do PDF
-        left: annotation.position.dx,
-        top: annotation.position.dy,
+        left: annotation.xPosition,
+        top: annotation.yPosition,
         child: GestureDetector(
           onTap: () {
-            // Mostrar detalhes da anotação
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Anotação'),
-                content: Text(annotation.text),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Fechar'),
-                  ),
-                ],
-              ),
-            );
+            _showAnnotationDialog(annotation);
           },
           child: Container(
             width: 24,
@@ -436,6 +495,89 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
         ),
       );
     }).toList();
+  }
+
+  void _showAnnotationDialog(PdfAnnotation annotation) {
+    final textController = TextEditingController(text: annotation.text);
+    Color selectedColor = annotation.color;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Anotação'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: textController,
+                decoration: const InputDecoration(
+                  labelText: 'Texto da Anotação',
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              const Text('Cor:'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  Colors.yellow,
+                  Colors.red,
+                  Colors.green,
+                  Colors.blue,
+                  Colors.purple,
+                  Colors.orange,
+                ].map((color) {
+                  return GestureDetector(
+                    onTap: () {
+                      selectedColor = color;
+                      Navigator.pop(context);
+                      _showAnnotationDialog(annotation); // Reabrir com nova cor
+                    },
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: color == selectedColor
+                            ? Border.all(color: Colors.black, width: 2)
+                            : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _deleteAnnotation(annotation.id);
+              Navigator.pop(context);
+            },
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              _updateAnnotation(
+                annotation,
+                newText: textController.text,
+                newColor: selectedColor,
+              );
+              Navigator.pop(context);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPresentationFAB() {
@@ -533,9 +675,7 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
-                        setState(() {
-                          _annotations.removeAt(index);
-                        });
+                        _deleteAnnotation(annotation.id);
                       },
                     ),
                     onTap: () {
@@ -569,19 +709,4 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
       ),
     );
   }
-}
-
-// Classe simples para armazenar anotações
-class PdfAnnotation {
-  final int pageNumber;
-  final Offset position;
-  final String text;
-  final Color color;
-
-  PdfAnnotation({
-    required this.pageNumber,
-    required this.position,
-    required this.text,
-    required this.color,
-  });
 }

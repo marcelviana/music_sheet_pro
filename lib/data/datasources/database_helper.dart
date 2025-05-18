@@ -5,28 +5,28 @@ import 'package:path_provider/path_provider.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
-  
+
   static Database? _database;
-  
+
   DatabaseHelper._internal();
-  
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
-  
+
   Future<Database> _initDatabase() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final path = join(documentsDirectory.path, 'musicsheetpro.db');
-    
+
     return await openDatabase(
       path,
       version: 1,
       onCreate: _createDb,
     );
   }
-  
+
   Future<void> _createDb(Database db, int version) async {
     // Tabela de músicas
     await db.execute('''
@@ -40,7 +40,7 @@ class DatabaseHelper {
         isFavorite INTEGER NOT NULL
       )
     ''');
-    
+
     // Tabela de conteúdos musicais
     await db.execute('''
       CREATE TABLE music_contents(
@@ -52,7 +52,7 @@ class DatabaseHelper {
         FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
       )
     ''');
-    
+
     // Tabela de setlists
     await db.execute('''
       CREATE TABLE setlists(
@@ -63,7 +63,7 @@ class DatabaseHelper {
         updatedAt INTEGER NOT NULL
       )
     ''');
-    
+
     // Tabela de relação setlist-música (many-to-many)
     await db.execute('''
       CREATE TABLE setlist_music(
@@ -73,6 +73,20 @@ class DatabaseHelper {
         PRIMARY KEY (setlistId, musicId),
         FOREIGN KEY (setlistId) REFERENCES setlists (id) ON DELETE CASCADE,
         FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
+      )
+    ''');
+    // Tabela de anotações
+    await db.execute('''
+      CREATE TABLE annotations(
+        id TEXT PRIMARY KEY,
+        contentId TEXT NOT NULL,
+        pageNumber INTEGER NOT NULL,
+        xPosition REAL NOT NULL,
+        yPosition REAL NOT NULL,
+        text TEXT NOT NULL,
+        colorValue INTEGER NOT NULL,
+        createdAt INTEGER NOT NULL,
+        FOREIGN KEY (contentId) REFERENCES music_contents (id) ON DELETE CASCADE
       )
     ''');
   }

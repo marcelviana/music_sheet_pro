@@ -3,6 +3,8 @@ import 'package:music_sheet_pro/data/repositories/music_repository_impl.dart';
 import 'package:music_sheet_pro/data/repositories/setlist_repository_impl.dart';
 import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
 import 'package:music_sheet_pro/domain/repositories/setlist_repository.dart';
+import 'package:music_sheet_pro/data/repositories/annotation_repository_impl.dart';
+import 'package:music_sheet_pro/domain/repositories/annotation_repository.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -11,8 +13,12 @@ void setupServiceLocator() {
   serviceLocator.registerLazySingleton<MusicRepository>(
     () => MusicRepositoryImpl(),
   );
-  
+
   serviceLocator.registerLazySingleton<SetlistRepository>(
     () => SetlistRepositoryImpl(),
+  );
+
+  serviceLocator.registerLazySingleton<AnnotationRepository>(
+    () => AnnotationRepositoryImpl(),
   );
 }

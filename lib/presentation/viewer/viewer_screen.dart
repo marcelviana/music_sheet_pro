@@ -3,10 +3,13 @@ import 'package:music_sheet_pro/core/models/music.dart';
 import 'package:music_sheet_pro/core/models/music_content.dart';
 import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
 import 'package:music_sheet_pro/core/services/service_locator.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:uuid/uuid.dart';
+import 'package:music_sheet_pro/presentation/viewer/pdf_viewer_screen.dart';
 
 class ViewerScreen extends StatefulWidget {
   final String? musicId;
-  
+
   const ViewerScreen({super.key, this.musicId});
 
   @override
@@ -15,18 +18,54 @@ class ViewerScreen extends StatefulWidget {
 
 class _ViewerScreenState extends State<ViewerScreen> {
   final MusicRepository _musicRepository = serviceLocator<MusicRepository>();
-  
+
   Music? _music;
   List<MusicContent> _contents = [];
   bool _isLoading = true;
   String? _error;
-  
+
   @override
   void initState() {
     super.initState();
     _loadMusic();
   }
-  
+
+  Future<void> _importContent() async {
+    try {
+      // Seletor de arquivos
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+
+      if (result != null) {
+        // Obter o caminho do arquivo
+        String path = result.files.single.path!;
+        String fileName = result.files.single.name;
+
+        // Adicionar o conteúdo ao repositório
+        await _musicRepository.addContent(MusicContent(
+          id: const Uuid().v4(),
+          musicId: widget.musicId!,
+          type: ContentType.sheetMusic,
+          contentPath: path,
+        ));
+
+        // Recarregar a tela
+        _loadMusic();
+
+        // Mostrar mensagem de sucesso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$fileName importado com sucesso')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    }
+  }
+
   Future<void> _loadMusic() async {
     if (widget.musicId == null) {
       setState(() {
@@ -35,13 +74,13 @@ class _ViewerScreenState extends State<ViewerScreen> {
       });
       return;
     }
-    
+
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
-      
+
       final music = await _musicRepository.getMusicById(widget.musicId!);
       if (music == null) {
         setState(() {
@@ -50,9 +89,10 @@ class _ViewerScreenState extends State<ViewerScreen> {
         });
         return;
       }
-      
-      final contents = await _musicRepository.getContentsForMusic(widget.musicId!);
-      
+
+      final contents =
+          await _musicRepository.getContentsForMusic(widget.musicId!);
+
       setState(() {
         _music = music;
         _contents = contents;
@@ -65,7 +105,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,12 +123,12 @@ class _ViewerScreenState extends State<ViewerScreen> {
       body: _buildBody(),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_error != null) {
       return Center(
         child: Column(
@@ -106,11 +146,11 @@ class _ViewerScreenState extends State<ViewerScreen> {
         ),
       );
     }
-    
+
     if (_music == null) {
       return const Center(child: Text('Música não encontrada.'));
     }
-    
+
     if (_contents.isEmpty) {
       return Center(
         child: Column(
@@ -129,16 +169,14 @@ class _ViewerScreenState extends State<ViewerScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implementar adição de conteúdo
-              },
-              child: const Text('Adicionar conteúdo'),
+              onPressed: _importContent,
+              child: const Text('Importar Partitura'),
             ),
           ],
         ),
       );
     }
-    
+
     // Exemplo simples - na implementação real, você integraria
     // com SyncfusionPdfViewer ou outra solução para visualizar partituras
     return Center(
@@ -163,9 +201,25 @@ class _ViewerScreenState extends State<ViewerScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implementar visualização real
+              // Abrir o primeiro conteúdo na lista
+              if (_contents.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PdfViewerScreen(
+                      filePath: _contents.first.contentPath,
+                      title: _music!.title,
+                    ),
+                  ),
+                );
+              }
             },
-            child: const Text('Abrir visualizador'),
+            child: const Text('Abrir Partitura'),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _importContent,
+            child: const Text('Importar Partitura'),
           ),
         ],
       ),

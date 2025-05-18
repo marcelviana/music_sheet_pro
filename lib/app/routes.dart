@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:music_sheet_pro/presentation/library/library_screen.dart';
 import 'package:music_sheet_pro/presentation/setlists/setlists_screen.dart';
 import 'package:music_sheet_pro/presentation/viewer/viewer_screen.dart';
+import 'package:music_sheet_pro/presentation/home/home_screen.dart';
 
+// Em lib/app/routes.dart:
 class AppRoutes {
   static const String home = '/';
   static const String library = '/library';
@@ -12,6 +14,7 @@ class AppRoutes {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case home:
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
       case library:
         return MaterialPageRoute(builder: (_) => const LibraryScreen());
       case viewer:

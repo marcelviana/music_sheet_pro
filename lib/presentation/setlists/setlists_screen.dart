@@ -13,26 +13,27 @@ class SetlistsScreen extends StatefulWidget {
 }
 
 class _SetlistsScreenState extends State<SetlistsScreen> {
-  final SetlistRepository _setlistRepository = serviceLocator<SetlistRepository>();
+  final SetlistRepository _setlistRepository =
+      serviceLocator<SetlistRepository>();
   final List<Setlist> _setlists = [];
   bool _isLoading = true;
   String? _error;
-  
+
   @override
   void initState() {
     super.initState();
     _loadSetlists();
   }
-  
+
   Future<void> _loadSetlists() async {
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
-      
+
       final setlists = await _setlistRepository.getAllSetlists();
-      
+
       setState(() {
         _setlists.clear();
         _setlists.addAll(setlists);
@@ -45,7 +46,7 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +55,7 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_setlists',
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -61,7 +63,7 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
               builder: (context) => const AddEditSetlistScreen(),
             ),
           );
-          
+
           if (result == true) {
             _loadSetlists();
           }
@@ -70,12 +72,12 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
       ),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_error != null) {
       return Center(
         child: Column(
@@ -93,7 +95,7 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
         ),
       );
     }
-    
+
     if (_setlists.isEmpty) {
       return Center(
         child: Column(
@@ -114,34 +116,38 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
         ),
       );
     }
-    
+
     return ListView.builder(
       itemCount: _setlists.length,
       itemBuilder: (context, index) {
         final setlist = _setlists[index];
-        return ListTile(
-          title: Text(setlist.name),
-          subtitle: Text(setlist.description),
-          leading: const CircleAvatar(
-            child: Icon(Icons.queue_music),
-          ),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () async {
-              await _setlistRepository.deleteSetlist(setlist.id);
-              _loadSetlists();
+        return HeroMode(
+          enabled: false,
+          child: ListTile(
+            title: Text(setlist.name),
+            subtitle: Text(setlist.description),
+            leading: const CircleAvatar(
+              child: Icon(Icons.queue_music),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                await _setlistRepository.deleteSetlist(setlist.id);
+                _loadSetlists();
+              },
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SetlistDetailScreen(setlistId: setlist.id),
+                ),
+              ).then((_) {
+                _loadSetlists();
+              });
             },
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SetlistDetailScreen(setlistId: setlist.id),
-              ),
-            ).then((_) {
-              _loadSetlists();
-            });
-          },
         );
       },
     );

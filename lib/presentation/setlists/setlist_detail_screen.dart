@@ -10,7 +10,7 @@ import 'package:music_sheet_pro/presentation/setlists/add_edit_setlist_screen.da
 
 class SetlistDetailScreen extends StatefulWidget {
   final String setlistId;
-  
+
   const SetlistDetailScreen({super.key, required this.setlistId});
 
   @override
@@ -18,29 +18,30 @@ class SetlistDetailScreen extends StatefulWidget {
 }
 
 class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
-  final SetlistRepository _setlistRepository = serviceLocator<SetlistRepository>();
+  final SetlistRepository _setlistRepository =
+      serviceLocator<SetlistRepository>();
   final MusicRepository _musicRepository = serviceLocator<MusicRepository>();
-  
+
   Setlist? _setlist;
   List<Music> _musics = [];
   bool _isLoading = true;
   String? _error;
-  
+
   @override
   void initState() {
     super.initState();
     _loadSetlist();
   }
-  
+
   Future<void> _loadSetlist() async {
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
-      
+
       final setlist = await _setlistRepository.getSetlistById(widget.setlistId);
-      
+
       if (setlist == null) {
         setState(() {
           _error = 'Setlist não encontrada';
@@ -48,9 +49,10 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
         });
         return;
       }
-      
-      final musics = await _setlistRepository.getMusicsInSetlist(widget.setlistId);
-      
+
+      final musics =
+          await _setlistRepository.getMusicsInSetlist(widget.setlistId);
+
       setState(() {
         _setlist = setlist;
         _musics = musics;
@@ -63,23 +65,24 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
       });
     }
   }
-  
+
   Future<void> _addMusicToSetlist() async {
     // Obter todas as músicas disponíveis
     final allMusics = await _musicRepository.getAllMusics();
-    
+
     // Filtrar as músicas que já estão na setlist
-    final availableMusics = allMusics.where(
-      (music) => !_musics.any((m) => m.id == music.id)
-    ).toList();
-    
+    final availableMusics = allMusics
+        .where((music) => !_musics.any((m) => m.id == music.id))
+        .toList();
+
     if (availableMusics.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não há músicas disponíveis para adicionar')),
+        const SnackBar(
+            content: Text('Não há músicas disponíveis para adicionar')),
       );
       return;
     }
-    
+
     // Mostrar diálogo para seleção de músicas
     showDialog(
       context: context,
@@ -97,25 +100,27 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
                 subtitle: Text(music.artist),
                 onTap: () async {
                   Navigator.pop(context);
-                  
+
                   try {
-                    await _setlistRepository.addMusicToSetlist(
-                      widget.setlistId,
-                      music.id,
-                      _musics.length  // Adicionar ao final
-                    );
-                    
+                    await _setlistRepository.addMusicToSetlist(widget.setlistId,
+                        music.id, _musics.length // Adicionar ao final
+                        );
+
                     _loadSetlist();
-                    
+
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${music.title} adicionada à setlist')),
+                        SnackBar(
+                            content:
+                                Text('${music.title} adicionada à setlist')),
                       );
                     }
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao adicionar música: ${e.toString()}')),
+                        SnackBar(
+                            content: Text(
+                                'Erro ao adicionar música: ${e.toString()}')),
                       );
                     }
                   }
@@ -133,17 +138,17 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
       ),
     );
   }
-  
+
   Future<void> _reorderSetlist(int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    
+
     setState(() {
       final Music item = _musics.removeAt(oldIndex);
       _musics.insert(newIndex, item);
     });
-    
+
     try {
       await _setlistRepository.reorderSetlistMusics(
         widget.setlistId,
@@ -153,10 +158,10 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao reordenar: ${e.toString()}')),
       );
-      _loadSetlist();  // Recarregar caso haja erro
+      _loadSetlist(); // Recarregar caso haja erro
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,10 +175,11 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddEditSetlistScreen(setlist: _setlist),
+                    builder: (context) =>
+                        AddEditSetlistScreen(setlist: _setlist),
                   ),
                 );
-                
+
                 if (result == true) {
                   _loadSetlist();
                 }
@@ -184,17 +190,18 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_setlist_detail',
         onPressed: _addMusicToSetlist,
         child: const Icon(Icons.add),
       ),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_error != null) {
       return Center(
         child: Column(
@@ -212,11 +219,11 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
         ),
       );
     }
-    
+
     if (_setlist == null) {
       return const Center(child: Text('Setlist não encontrada'));
     }
-    
+
     if (_musics.isEmpty) {
       return Center(
         child: Column(
@@ -248,7 +255,7 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
         ),
       );
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -291,7 +298,8 @@ class _SetlistDetailScreenState extends State<SetlistDetailScreen> {
                       _loadSetlist();
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao remover: ${e.toString()}')),
+                        SnackBar(
+                            content: Text('Erro ao remover: ${e.toString()}')),
                       );
                     }
                   },

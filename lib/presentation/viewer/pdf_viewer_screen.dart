@@ -24,25 +24,28 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.zoom_in),
-            onPressed: () {
-              _pdfViewerController.zoomLevel = _pdfViewerController.zoomLevel + 0.25;
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.zoom_out),
-            onPressed: () {
-              _pdfViewerController.zoomLevel = _pdfViewerController.zoomLevel - 0.25;
-            },
-          ),
-        ],
+    return HeroMode(
+      enabled: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.zoom_in),
+              onPressed: () {
+                _pdfViewerController.zoomLevel = _pdfViewerController.zoomLevel + 0.25;
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.zoom_out),
+              onPressed: () {
+                _pdfViewerController.zoomLevel = _pdfViewerController.zoomLevel - 0.25;
+              },
+            ),
+          ],
+        ),
+        body: _buildBody(),
       ),
-      body: _buildBody(),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:music_sheet_pro/core/models/setlist_music.dart';
 import 'package:music_sheet_pro/data/datasources/database_helper.dart';
 import 'package:music_sheet_pro/domain/repositories/setlist_repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:sqflite/sqflite.dart';
 
 class SetlistRepositoryImpl implements SetlistRepository {
   final DatabaseHelper _databaseHelper = DatabaseHelper();

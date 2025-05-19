@@ -19,7 +19,7 @@ class PdfAnnotation {
     required this.text,
     required this.colorValue,
     DateTime? createdAt,
-  }) : this.createdAt = createdAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now();
 
   // Métodos auxiliares para cor
   Color get color => Color(colorValue);

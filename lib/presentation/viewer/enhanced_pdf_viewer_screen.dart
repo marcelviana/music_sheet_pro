@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'dart:io';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'dart:async';
 import 'package:music_sheet_pro/core/models/annotation.dart';
 import 'package:music_sheet_pro/domain/repositories/annotation_repository.dart';
@@ -147,7 +147,7 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
   void dispose() {
     _stopAutoScroll(callSetState: false);
     // Garantir que a tela pode hibernar novamente
-    Wakelock.disable();
+    WakelockPlus.disable();
     super.dispose();
   }
 
@@ -182,10 +182,10 @@ class _EnhancedPdfViewerScreenState extends State<EnhancedPdfViewerScreen> {
 
       if (_isPresentationMode) {
         // Manter a tela ativa durante o modo apresentação
-        Wakelock.enable();
+        WakelockPlus.enable();
       } else {
         // Voltar ao normal quando sair do modo apresentação
-        Wakelock.disable();
+        WakelockPlus.disable();
         _stopAutoScroll();
       }
     });

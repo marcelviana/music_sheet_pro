@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# music_sheet_pro
-Um aplicativo para gerenciar partituras e tablaturas musicais
-=======
-=======
->>>>>>> origin/HEAD
 # Documentação do MusicSheet Pro
 
 ## 1. Visão Geral do Projeto
@@ -597,7 +590,3 @@ AppDocumentsDirectory/
 4. **Processamento Avançado de Áudio**:
    - Análise de ritmo para metrônomo automático
    - Detecção de acordes a partir de áudio
-<<<<<<< HEAD
->>>>>>> dfdae23 (Update README.md)
-=======
->>>>>>> origin/HEAD

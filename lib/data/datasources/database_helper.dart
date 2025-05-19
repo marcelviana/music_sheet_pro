@@ -48,6 +48,7 @@ class DatabaseHelper {
         musicId TEXT NOT NULL,
         type INTEGER NOT NULL,
         contentPath TEXT NOT NULL,
+        contentText TEXT,
         version INTEGER NOT NULL,
         FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
       )

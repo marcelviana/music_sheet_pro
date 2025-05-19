@@ -5,6 +5,7 @@ class MusicContent {
   final String musicId;
   final ContentType type;
   final String contentPath;
+  final String? contentText;
   final int version;
 
   MusicContent({
@@ -12,6 +13,7 @@ class MusicContent {
     required this.musicId,
     required this.type,
     required this.contentPath,
+    this.contentText,
     this.version = 1,
   });
 
@@ -21,6 +23,7 @@ class MusicContent {
       'musicId': musicId,
       'type': type.index,
       'contentPath': contentPath,
+      'contentText': contentText, 
       'version': version,
     };
   }
@@ -31,7 +34,27 @@ class MusicContent {
       musicId: map['musicId'],
       type: ContentType.values[map['type']],
       contentPath: map['contentPath'],
+      contentText: map['contentText'],
       version: map['version'],
     );
   }
+
+  MusicContent copyWith({
+    String? id,
+    String? musicId,
+    ContentType? type,
+    String? contentPath,
+    String? contentText,
+    int? version,
+  }) {
+    return MusicContent(
+      id: id ?? this.id,
+      musicId: musicId ?? this.musicId,
+      type: type ?? this.type,
+      contentPath: contentPath ?? this.contentPath,
+      contentText: contentText ?? this.contentText,
+      version: version ?? this.version,
+    );
+  }
+
 }

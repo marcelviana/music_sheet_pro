@@ -6,6 +6,7 @@ import 'package:music_sheet_pro/core/services/service_locator.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:music_sheet_pro/presentation/viewer/enhanced_pdf_viewer_screen.dart';
+import 'package:music_sheet_pro/presentation/lyrics/lyric_editor_screen.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -26,6 +27,16 @@ class _ViewerScreenState extends State<ViewerScreen> {
   List<MusicContent> _contents = [];
   bool _isLoading = true;
   String? _error;
+
+  MusicContent? getLyricOrChordContent(List<MusicContent> contents) {
+    try {
+      return contents.firstWhere(
+        (c) => c.type == ContentType.lyrics || c.type == ContentType.chordChart,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -226,6 +237,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
     // Exemplo simples - na implementação real, você integraria
     // com SyncfusionPdfViewer ou outra solução para visualizar partituras
+    final lyricOrChordContent = getLyricOrChordContent(_contents);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -269,8 +281,74 @@ class _ViewerScreenState extends State<ViewerScreen> {
             onPressed: _importContent,
             child: const Text('Importar Partitura'),
           ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => LyricEditorScreen(
+                    music: _music!,
+                    existingContent: lyricOrChordContent,
+                  ),
+                ),
+              );
+              if (result == true) {
+                _loadMusic();
+              }
+            },
+            child: Text(lyricOrChordContent == null
+                ? 'Adicionar Letra/Cifra'
+                : 'Editar Letra/Cifra'),
+          ),
+          if (lyricOrChordContent != null)
+            SizedBox(
+              height: 300, // ou ajuste como preferir
+              child: _LyricOrChordViewer(content: lyricOrChordContent),
+            ),
         ],
       ),
+    );
+  }
+}
+
+class _LyricOrChordViewer extends StatelessWidget {
+  final MusicContent content;
+  const _LyricOrChordViewer({required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = (content.contentText ?? '').split('\n');
+    final regex = RegExp(r'(\[[^\]]+\])');
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: lines.length,
+      itemBuilder: (_, idx) {
+        final line = lines[idx];
+        final spans = <TextSpan>[];
+        int lastEnd = 0;
+        for (final match in regex.allMatches(line)) {
+          if (match.start > lastEnd) {
+            spans.add(TextSpan(text: line.substring(lastEnd, match.start)));
+          }
+          spans.add(TextSpan(
+            text: match.group(0),
+            style: const TextStyle(
+                color: Colors.blue, fontWeight: FontWeight.bold),
+          ));
+          lastEnd = match.end;
+        }
+        if (lastEnd < line.length) {
+          spans.add(TextSpan(text: line.substring(lastEnd)));
+        }
+        return RichText(
+          text: TextSpan(
+            style:
+                const TextStyle(color: Colors.black, fontFamily: "monospace"),
+            children: spans,
+          ),
+        );
+      },
     );
   }
 }

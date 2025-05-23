@@ -8,8 +8,8 @@ class LyricEditorScreen extends StatefulWidget {
   final Music music;
   final MusicContent? existingContent;
 
-  const LyricEditorScreen({required this.music, this.existingContent, Key? key})
-      : super(key: key);
+  const LyricEditorScreen(
+      {required this.music, this.existingContent, super.key});
 
   @override
   State<LyricEditorScreen> createState() => _LyricEditorScreenState();

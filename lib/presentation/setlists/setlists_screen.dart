@@ -121,33 +121,31 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
       itemCount: _setlists.length,
       itemBuilder: (context, index) {
         final setlist = _setlists[index];
-        return HeroMode(
-          enabled: false,
-          child: ListTile(
-            title: Text(setlist.name),
-            subtitle: Text(setlist.description),
-            leading: const CircleAvatar(
-              child: Icon(Icons.queue_music),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () async {
-                await _setlistRepository.deleteSetlist(setlist.id);
-                _loadSetlists();
-              },
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      SetlistDetailScreen(setlistId: setlist.id),
-                ),
-              ).then((_) {
-                _loadSetlists();
-              });
+
+        return ListTile(
+          title: Text(setlist.name),
+          subtitle: Text(setlist.description),
+          leading: const CircleAvatar(
+            child: Icon(Icons.queue_music),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              await _setlistRepository.deleteSetlist(setlist.id);
+              _loadSetlists();
             },
           ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    SetlistDetailScreen(setlistId: setlist.id),
+              ),
+            ).then((_) {
+              _loadSetlists();
+            });
+          },
         );
       },
     );

@@ -240,52 +240,50 @@ class _LibraryScreenState extends State<LibraryScreen> {
       itemCount: _musics.length,
       itemBuilder: (context, index) {
         final music = _musics[index];
-        return HeroMode(
-          enabled: false,
-          child: ListTile(
-            title: Text(music.title),
-            subtitle: Text(music.artist),
-            leading: CircleAvatar(
-              child: Text(music.title[0]),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    music.isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: music.isFavorite ? Colors.red : null,
-                  ),
-                  onPressed: () async {
-                    await _musicRepository.toggleFavorite(music.id);
-                    _loadMusics();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddEditMusicScreen(music: music),
-                      ),
-                    );
 
-                    if (result == true) {
-                      _loadMusics();
-                    }
-                  },
-                ),
-              ],
-            ),
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.viewer,
-                arguments: ViewerScreenArgs(musicId: music.id),
-              );
-            },
+        return ListTile(
+          title: Text(music.title),
+          subtitle: Text(music.artist),
+          leading: CircleAvatar(
+            child: Text(music.title[0]),
           ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(
+                  music.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: music.isFavorite ? Colors.red : null,
+                ),
+                onPressed: () async {
+                  await _musicRepository.toggleFavorite(music.id);
+                  _loadMusics();
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddEditMusicScreen(music: music),
+                    ),
+                  );
+
+                  if (result == true) {
+                    _loadMusics();
+                  }
+                },
+              ),
+            ],
+          ),
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.viewer,
+              arguments: ViewerScreenArgs(musicId: music.id),
+            );
+          },
         );
       },
     );

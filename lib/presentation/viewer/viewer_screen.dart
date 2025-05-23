@@ -7,9 +7,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:music_sheet_pro/presentation/viewer/enhanced_pdf_viewer_screen.dart';
 import 'package:music_sheet_pro/presentation/lyrics/lyric_editor_screen.dart';
-
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
+import 'package:music_sheet_pro/core/utils/file_utils.dart';
+import 'package:music_sheet_pro/core/utils/permission_utils.dart';
 
 class ViewerScreen extends StatefulWidget {
   final String? musicId;
@@ -46,65 +45,40 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
   Future<void> _importContent() async {
     try {
-      // Verificar e solicitar permissões
-      PermissionStatus status;
-
-      if (Platform.isAndroid) {
-        // No Android, precisamos de permissão de armazenamento
-        status = await Permission.storage.status;
-        if (!status.isGranted) {
-          status = await Permission.storage.request();
-
-          // Para Android 11+ (API level 30+)
-          if (!status.isGranted) {
-            if (await Permission.manageExternalStorage.request().isGranted) {
-              status = PermissionStatus.granted;
-            }
-          }
-        }
-      } else if (Platform.isIOS) {
-        // No iOS, as permissões são tratadas pelo seletor de arquivos
-        status = PermissionStatus.granted;
-      } else {
-        // Outras plataformas
-        status = PermissionStatus.granted;
-      }
-
-      if (!status.isGranted) {
+      // Verificar permissões de forma simplificada
+      if (!await PermissionUtils.requestFilePermissions()) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                  'Permissão de acesso aos arquivos negada. Não é possível importar partituras.'),
+              content: Text('Permissão de acesso aos arquivos negada.'),
             ),
           );
         }
         return;
       }
 
-      // Agora que temos permissão, podemos selecionar o arquivo
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
 
-      if (result != null) {
-        // Obter o caminho do arquivo
-        String path = result.files.single.path!;
-        String fileName = result.files.single.name;
+      if (result != null && result.files.single.path != null) {
+        final sourcePath = result.files.single.path!;
+        final fileName = result.files.single.name;
+
+        // Copiar arquivo para diretório do app
+        final targetPath = await FileUtils.copyToAppDirectory(sourcePath);
 
         // Adicionar o conteúdo ao repositório
         await _musicRepository.addContent(MusicContent(
           id: const Uuid().v4(),
           musicId: widget.musicId!,
           type: ContentType.sheetMusic,
-          contentPath: path,
+          contentPath: targetPath, // ✅ Usar path do app
         ));
 
-        // Recarregar a tela
+        // Recarregar e mostrar sucesso
         _loadMusic();
-
-        // Mostrar mensagem de sucesso
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('$fileName importado com sucesso')),
@@ -113,10 +87,6 @@ class _ViewerScreenState extends State<ViewerScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _error = e.toString();
-        });
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao importar: $e')),
         );

@@ -4,6 +4,8 @@ import 'package:music_sheet_pro/domain/repositories/setlist_repository.dart';
 import 'package:music_sheet_pro/core/services/service_locator.dart';
 import 'package:music_sheet_pro/presentation/setlists/add_edit_setlist_screen.dart';
 import 'package:music_sheet_pro/presentation/setlists/setlist_detail_screen.dart';
+import 'package:music_sheet_pro/core/widgets/loading_state_widget.dart';
+import 'package:music_sheet_pro/core/widgets/empty_state_widget.dart';
 
 class SetlistsScreen extends StatefulWidget {
   const SetlistsScreen({super.key});
@@ -47,73 +49,46 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
     }
   }
 
+  Future<void> _navigateToAddSetlist() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddEditSetlistScreen(),
+      ),
+    );
+
+    if (result == true) {
+      _loadSetlists();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Setlists'),
       ),
-      body: _buildBody(),
+      body: LoadingStateWidget(
+        // ✅ USAR NOVO WIDGET
+        isLoading: _isLoading,
+        error: _error,
+        onRetry: _loadSetlists,
+        child: _buildSetlistsList(),
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_setlists',
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddEditSetlistScreen(),
-            ),
-          );
-
-          if (result == true) {
-            _loadSetlists();
-          }
-        },
+        onPressed: _navigateToAddSetlist,
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Erro: $_error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadSetlists,
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      );
-    }
-
+  Widget _buildSetlistsList() {
     if (_setlists.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.queue_music, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Nenhuma setlist encontrada',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Crie uma setlist tocando no botão +',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.queue_music,
+        title: 'Nenhuma setlist encontrada',
+        subtitle: 'Crie uma setlist tocando no botão +',
       );
     }
 

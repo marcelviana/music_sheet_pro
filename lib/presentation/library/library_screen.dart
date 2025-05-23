@@ -4,6 +4,8 @@ import 'package:music_sheet_pro/core/models/music.dart';
 import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
 import 'package:music_sheet_pro/core/services/service_locator.dart';
 import 'package:music_sheet_pro/presentation/library/add_edit_music_screen.dart';
+import 'package:music_sheet_pro/core/widgets/loading_state_widget.dart';
+import 'package:music_sheet_pro/core/widgets/empty_state_widget.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -97,7 +99,7 @@ class MusicSearchDelegate extends SearchDelegate<String> {
       },
     );
   }
-} // MusicSearchDelegate
+}
 
 class _LibraryScreenState extends State<LibraryScreen> {
   final MusicRepository _musicRepository = serviceLocator<MusicRepository>();
@@ -131,7 +133,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
         _isLoading = false;
       });
     }
-  } // _loadMusics
+  }
+
+  Future<void> _navigateToAddMusic() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddEditMusicScreen(),
+      ),
+    );
+
+    if (result == true) {
+      _loadMusics();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,82 +171,30 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         ],
       ),
-      body: _buildBody(), // Adicionado esta linha
+      body: LoadingStateWidget(
+        isLoading: _isLoading,
+        error: _error,
+        onRetry: _loadMusics,
+        child: _buildMusicsList(),
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_library',
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddEditMusicScreen(),
-            ),
-          );
-
-          if (result == true) {
-            _loadMusics();
-          }
-        },
+        onPressed: _navigateToAddMusic,
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Erro: $_error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadMusics,
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      );
-    }
-
+  Widget _buildMusicsList() {
     if (_musics.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.music_note, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Sua biblioteca está vazia',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Adicione músicas tocando no botão +',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddEditMusicScreen(),
-                  ),
-                );
-
-                if (result == true) {
-                  _loadMusics();
-                }
-              },
-              child: const Text('Adicionar música'),
-            ),
-          ],
+      return EmptyStateWidget(
+        // ✅ USAR NOVO WIDGET
+        icon: Icons.music_note,
+        title: 'Sua biblioteca está vazia',
+        subtitle: 'Adicione músicas tocando no botão +',
+        action: ElevatedButton(
+          onPressed: _navigateToAddMusic,
+          child: const Text('Adicionar música'),
         ),
       );
     }

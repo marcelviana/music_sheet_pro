@@ -45,7 +45,6 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
   Future<void> _importContent() async {
     try {
-      // Verificar permissões de forma simplificada
       if (!await PermissionUtils.requestFilePermissions()) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -66,18 +65,16 @@ class _ViewerScreenState extends State<ViewerScreen> {
         final sourcePath = result.files.single.path!;
         final fileName = result.files.single.name;
 
-        // Copiar arquivo para diretório do app
         final targetPath = await FileUtils.copyToAppDirectory(sourcePath);
 
-        // Adicionar o conteúdo ao repositório
         await _musicRepository.addContent(MusicContent(
           id: const Uuid().v4(),
           musicId: widget.musicId!,
           type: ContentType.sheetMusic,
-          contentPath: targetPath, // ✅ Usar path do app
+          contentPath: targetPath,
+          contentText: null,
         ));
 
-        // Recarregar e mostrar sucesso
         _loadMusic();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +89,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
         );
       }
     }
-  } //_importContent
+  }
 
   Future<void> _loadMusic() async {
     if (widget.musicId == null) {
@@ -205,8 +202,6 @@ class _ViewerScreenState extends State<ViewerScreen> {
       );
     }
 
-    // Exemplo simples - na implementação real, você integraria
-    // com SyncfusionPdfViewer ou outra solução para visualizar partituras
     final lyricOrChordContent = getLyricOrChordContent(_contents);
     return Center(
       child: Column(
@@ -230,7 +225,6 @@ class _ViewerScreenState extends State<ViewerScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              // Abrir o primeiro conteúdo na lista
               if (_contents.isNotEmpty) {
                 Navigator.push(
                   context,
@@ -273,7 +267,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
           ),
           if (lyricOrChordContent != null)
             SizedBox(
-              height: 300, // ou ajuste como preferir
+              height: 300,
               child: _LyricOrChordViewer(content: lyricOrChordContent),
             ),
         ],
@@ -291,7 +285,7 @@ class _LyricOrChordViewer extends StatelessWidget {
     final lines = (content.contentText ?? '').split('\n');
     final regex = RegExp(r'(\[[^\]]+\])');
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: lines.length,
       itemBuilder: (_, idx) {
         final line = lines[idx];

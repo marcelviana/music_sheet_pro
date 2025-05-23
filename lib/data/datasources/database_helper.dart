@@ -7,6 +7,8 @@ class DatabaseHelper {
   factory DatabaseHelper() => _instance;
 
   static Database? _database;
+  static const int _databaseVersion = 2;
+  static const int databaseVersion = 2;
 
   DatabaseHelper._internal();
 
@@ -22,9 +24,30 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: _databaseVersion,
       onCreate: _createDb,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Migração da versão 1 para 2
+      await db.execute('''
+        ALTER TABLE music_contents ADD COLUMN createdAt INTEGER DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE music_contents ADD COLUMN updatedAt INTEGER DEFAULT 0
+      ''');
+
+      // Atualizar registros existentes com timestamp atual
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.execute('''
+        UPDATE music_contents 
+        SET createdAt = ?, updatedAt = ? 
+        WHERE createdAt = 0
+      ''', [now, now]);
+    }
   }
 
   Future<void> _createDb(Database db, int version) async {
@@ -41,7 +64,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabela de conteúdos musicais
     await db.execute('''
       CREATE TABLE music_contents(
         id TEXT PRIMARY KEY,
@@ -49,7 +71,9 @@ class DatabaseHelper {
         type INTEGER NOT NULL,
         contentPath TEXT NOT NULL,
         contentText TEXT,
-        version INTEGER NOT NULL,
+        version INTEGER NOT NULL DEFAULT 1,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL,
         FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
       )
     ''');
@@ -76,6 +100,7 @@ class DatabaseHelper {
         FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
       )
     ''');
+
     // Tabela de anotações
     await db.execute('''
       CREATE TABLE annotations(

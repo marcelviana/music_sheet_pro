@@ -150,6 +150,8 @@ class MusicRepositoryImpl implements MusicRepository {
     try {
       final db = await _databaseHelper.database;
       final String id = content.id.isEmpty ? _uuid.v4() : content.id;
+      final now = DateTime.now();
+
       final contentWithId = MusicContent(
         id: id,
         musicId: content.musicId,
@@ -157,31 +159,36 @@ class MusicRepositoryImpl implements MusicRepository {
         contentPath: content.contentPath,
         contentText: content.contentText,
         version: content.version,
+        createdAt: now,
+        updatedAt: now,
       );
 
       await db.insert('music_contents', contentWithId.toMap());
       return id;
     } catch (e) {
-      print('Error: $e');
+      print('Error adding content: $e');
       rethrow;
     }
-  }
+  } //addContent
 
   @override
   Future<void> updateContent(MusicContent content) async {
     try {
       final db = await _databaseHelper.database;
+
+      final updatedContent = content.copyWith(updatedAt: DateTime.now());
+
       await db.update(
         'music_contents',
-        content.toMap(),
+        updatedContent.toMap(),
         where: 'id = ?',
         whereArgs: [content.id],
       );
     } catch (e) {
-      print('Error: $e');
+      print('Error updating content: $e');
       rethrow;
     }
-  }
+  } //updateContent
 
   @override
   Future<void> deleteContent(String id) async {

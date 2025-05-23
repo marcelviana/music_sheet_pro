@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:music_sheet_pro/core/models/music.dart';
 import 'package:music_sheet_pro/core/models/music_content.dart';
 import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
-import 'package:get_it/get_it.dart';
+import 'package:music_sheet_pro/core/services/service_locator.dart';
 
 class LyricEditorScreen extends StatefulWidget {
   final Music music;
   final MusicContent? existingContent;
 
   const LyricEditorScreen(
-      {required this.music, this.existingContent, super.key});
+      {super.key, required this.music, this.existingContent});
 
   @override
   State<LyricEditorScreen> createState() => _LyricEditorScreenState();
@@ -24,8 +24,7 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
   @override
   void initState() {
     super.initState();
-    _repo =
-        GetIt.I.get<MusicRepository>(); // Ou instancie como faz no seu projeto
+    _repo = serviceLocator<MusicRepository>();
     if (widget.existingContent != null) {
       _controller.text = widget.existingContent!.contentText ?? '';
       _selectedType = widget.existingContent!.type;
@@ -44,15 +43,17 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
         id: widget.existingContent?.id ?? '',
         musicId: widget.music.id,
         type: _selectedType,
-        contentPath: '', // Não usado para letras/cifras
+        contentPath: '', // Vazio para texto
         contentText: _controller.text,
         version: widget.existingContent?.version ?? 1,
       );
+
       if (widget.existingContent == null) {
         await _repo.addContent(content);
       } else {
-        await _repo.updateContent(content);
+        await _repo.updateContent(content.copyWith(updatedAt: DateTime.now()));
       }
+
       if (mounted) Navigator.pop(context, true);
     }
   }
@@ -64,7 +65,7 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
         title: Text(widget.existingContent == null
             ? 'Adicionar Letra/Cifra'
             : 'Editar Letra/Cifra'),
-        actions: [IconButton(icon: Icon(Icons.save), onPressed: _save)],
+        actions: [IconButton(icon: const Icon(Icons.save), onPressed: _save)],
       ),
       body: Form(
         key: _formKey,
@@ -74,7 +75,7 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
             children: [
               DropdownButtonFormField<ContentType>(
                 value: _selectedType,
-                items: [
+                items: const [
                   DropdownMenuItem(
                       value: ContentType.lyrics, child: Text('Letra')),
                   DropdownMenuItem(
@@ -83,15 +84,15 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
                 onChanged: (type) {
                   if (type != null) setState(() => _selectedType = type);
                 },
-                decoration: InputDecoration(labelText: 'Tipo'),
+                decoration: const InputDecoration(labelText: 'Tipo'),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Expanded(
                 child: TextFormField(
                   controller: _controller,
                   minLines: 10,
                   maxLines: null,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Digite aqui a letra ou cifra",
                     border: OutlineInputBorder(),
                   ),
@@ -99,7 +100,7 @@ class _LyricEditorScreenState extends State<LyricEditorScreen> {
                       ? "Não pode ficar vazio"
                       : null,
                   keyboardType: TextInputType.multiline,
-                  style: TextStyle(fontFamily: "monospace"),
+                  style: const TextStyle(fontFamily: "monospace"),
                 ),
               ),
             ],

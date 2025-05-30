@@ -1,10 +1,3 @@
-// 📁 lib/data/repositories/music_repository_impl.dart
-// 🎯 Repositório de Música Refatorado
-// ✅ Com validações, cache e tratamento de erros robusto
-// 📅 2025-05-23
-// 👤 MusicSheet Pro Team
-// 🔢 v2.0.0
-
 import 'package:music_sheet_pro/core/models/music.dart';
 import 'package:music_sheet_pro/core/models/music_content.dart';
 import 'package:music_sheet_pro/domain/repositories/music_repository.dart';
@@ -13,6 +6,8 @@ import 'package:music_sheet_pro/core/exceptions/app_exception.dart';
 import 'package:music_sheet_pro/core/validation/validators.dart';
 import 'package:music_sheet_pro/core/cache/cache_service.dart';
 import 'package:music_sheet_pro/core/utils/logger.dart';
+import 'package:music_sheet_pro/core/services/service_locator.dart';
+import 'package:music_sheet_pro/core/services/file_service.dart';
 import 'package:uuid/uuid.dart';
 
 class MusicRepositoryImpl implements MusicRepository {
@@ -338,6 +333,15 @@ class MusicRepositoryImpl implements MusicRepository {
           throw DatabaseException('Música não encontrada para exclusão');
         }
       });
+
+      // ✅ ADD THIS BLOCK - Clean up files after successful database deletion
+      try {
+        final fileService = serviceLocator<FileService>();
+        await fileService.deleteMusicFiles(id);
+      } catch (e) {
+        // Log error but don't fail the deletion
+        Logger.warning('Failed to delete music files for: $id', e);
+      }
 
       // Invalidar todos os caches relacionados
       await _invalidateRelevantCaches();

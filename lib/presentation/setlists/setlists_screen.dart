@@ -11,10 +11,10 @@ class SetlistsScreen extends StatefulWidget {
   const SetlistsScreen({super.key});
 
   @override
-  State<SetlistsScreen> createState() => _SetlistsScreenState();
+  State<SetlistsScreen> createState() => SetlistsScreenState();
 }
 
-class _SetlistsScreenState extends State<SetlistsScreen> {
+class SetlistsScreenState extends State<SetlistsScreen> {
   final SetlistRepository _setlistRepository =
       serviceLocator<SetlistRepository>();
   final List<Setlist> _setlists = [];
@@ -64,22 +64,11 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Setlists'),
-      ),
-      body: LoadingStateWidget(
-        // ✅ USAR NOVO WIDGET
-        isLoading: _isLoading,
-        error: _error,
-        onRetry: _loadSetlists,
-        child: _buildSetlistsList(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_setlists',
-        onPressed: _navigateToAddSetlist,
-        child: const Icon(Icons.add),
-      ),
+    return LoadingStateWidget(
+      isLoading: _isLoading,
+      error: _error,
+      onRetry: _loadSetlists,
+      child: _buildSetlistsList(),
     );
   }
 
@@ -124,5 +113,9 @@ class _SetlistsScreenState extends State<SetlistsScreen> {
         );
       },
     );
+  }
+
+  void addNewSetlist() {
+    _navigateToAddSetlist();
   }
 }

@@ -14,7 +14,7 @@ abstract class AppException implements Exception {
 }
 
 class DatabaseException extends AppException {
-  const DatabaseException(
+  DatabaseException(
     super.message, {
     super.code,
     super.originalError,

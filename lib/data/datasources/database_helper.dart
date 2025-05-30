@@ -7,8 +7,8 @@ class DatabaseHelper {
   factory DatabaseHelper() => _instance;
 
   static Database? _database;
-  static const int _databaseVersion = 2;
-  static const int databaseVersion = 2;
+  static const int _databaseVersion = 3;
+  static const int databaseVersion = 3;
 
   DatabaseHelper._internal();
 
@@ -48,6 +48,38 @@ class DatabaseHelper {
         WHERE createdAt = 0
       ''', [now, now]);
     }
+
+    if (oldVersion < 3) {
+      // Migração da versão 2 para 3
+      // Primeiro, criar uma tabela temporária com a nova estrutura
+      await db.execute('''
+        CREATE TABLE music_contents_temp(
+          id TEXT PRIMARY KEY,
+          musicId TEXT NOT NULL,
+          type INTEGER NOT NULL,
+          contentPath TEXT,
+          contentText TEXT,
+          version INTEGER NOT NULL DEFAULT 1,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER NOT NULL,
+          FOREIGN KEY (musicId) REFERENCES musics (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Copiar dados da tabela antiga para a nova, especificando as colunas explicitamente
+      await db.execute('''
+        INSERT INTO music_contents_temp (id, musicId, type, contentPath, contentText, version, createdAt, updatedAt)
+        SELECT id, musicId, type, contentPath, contentText, version, createdAt, updatedAt
+        FROM music_contents
+      ''');
+
+      // Remover a tabela antiga
+      await db.execute('DROP TABLE music_contents');
+
+      // Renomear a tabela temporária para o nome original
+      await db
+          .execute('ALTER TABLE music_contents_temp RENAME TO music_contents');
+    }
   }
 
   Future<void> _createDb(Database db, int version) async {
@@ -69,7 +101,7 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         musicId TEXT NOT NULL,
         type INTEGER NOT NULL,
-        contentPath TEXT NOT NULL,
+        contentPath TEXT,
         contentText TEXT,
         version INTEGER NOT NULL DEFAULT 1,
         createdAt INTEGER NOT NULL,

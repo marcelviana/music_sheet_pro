@@ -1,7 +1,8 @@
+// lib/app/routes.dart
 import 'package:flutter/material.dart';
 import 'package:music_sheet_pro/presentation/library/library_screen.dart';
 import 'package:music_sheet_pro/presentation/setlists/setlists_screen.dart';
-import 'package:music_sheet_pro/presentation/viewer/improved_viewer_screen.dart';
+import 'package:music_sheet_pro/presentation/viewer/music_content_viewer_screen.dart';
 import 'package:music_sheet_pro/presentation/viewer/enhanced_pdf_viewer_screen.dart';
 import 'package:music_sheet_pro/presentation/home/home_screen.dart';
 
@@ -22,7 +23,8 @@ class AppRoutes {
       case viewer:
         final args = settings.arguments as ViewerScreenArgs?;
         return MaterialPageRoute(
-            builder: (_) => ImprovedViewerScreen(musicId: args?.musicId));
+            builder: (_) => MusicContentViewerScreen(
+                musicId: args?.musicId)); // ✅ UPDATED LINE
       case setlists:
         return MaterialPageRoute(builder: (_) => const SetlistsScreen());
       case enhancedViewer:

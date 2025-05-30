@@ -9,7 +9,7 @@ class MusicContent {
   final String id;
   final String musicId;
   final ContentType type;
-  final String contentPath; // Para arquivos (PDF, imagens)
+  final String? contentPath; // Para arquivos (PDF, imagens)
   final String? contentText; // Para texto (letras, cifras)
   final int version;
   final DateTime createdAt;
@@ -19,7 +19,7 @@ class MusicContent {
     required this.id,
     required this.musicId,
     required this.type,
-    required this.contentPath,
+    this.contentPath,
     this.contentText,
     this.version = 1,
     DateTime? createdAt,
@@ -48,10 +48,10 @@ class MusicContent {
       contentPath: map['contentPath'],
       contentText: map['contentText'],
       version: map['version'] ?? 1,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ??
-          DateTime.now().millisecondsSinceEpoch), // ✅ ADICIONAR
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] ??
-          DateTime.now().millisecondsSinceEpoch), // ✅ ADICIONAR
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+          map['createdAt'] ?? DateTime.now().millisecondsSinceEpoch),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          map['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch),
     );
   }
 

@@ -150,8 +150,19 @@ class _ImprovedViewerScreenState extends State<ImprovedViewerScreen>
 
   Future<void> _openContent(MusicContent content) async {
     if (content.type == ContentType.sheetMusic) {
-      // Check if file exists
-      if (!await _fileService.fileExists(content.contentPath)) {
+      if (content.contentPath == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Caminho do arquivo não encontrado'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!await _fileService.fileExists(content.contentPath!)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -163,12 +174,11 @@ class _ImprovedViewerScreenState extends State<ImprovedViewerScreen>
         return;
       }
 
-      // Open PDF viewer
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => EnhancedPdfViewerScreen(
-            filePath: content.contentPath,
+            filePath: content.contentPath!,
             title: _musicNotifier.value.data?.title ?? 'Documento',
             contentId: content.id,
           ),
@@ -221,9 +231,9 @@ class _ImprovedViewerScreenState extends State<ImprovedViewerScreen>
 
         // Delete file if it's a file-based content
         if (content.type == ContentType.sheetMusic &&
-            content.contentPath.isNotEmpty) {
+            content.contentPath?.isNotEmpty == true) {
           try {
-            await File(content.contentPath).delete();
+            await File(content.contentPath!).delete();
           } catch (e) {
             // File might not exist, continue anyway
           }
@@ -435,7 +445,8 @@ class _ImprovedViewerScreenState extends State<ImprovedViewerScreen>
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               )
-            : Text('Arquivo: ${content.contentPath.split('/').last}'),
+            : Text(
+                'Arquivo: ${content.contentPath?.split('/').last ?? 'Sem nome'}'),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'delete') {

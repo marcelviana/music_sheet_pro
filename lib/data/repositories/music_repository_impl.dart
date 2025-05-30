@@ -385,8 +385,8 @@ class MusicRepositoryImpl implements MusicRepository {
     ValidationResult validation;
     if (content.contentText != null && content.contentText!.isNotEmpty) {
       validation = ContentValidators.validateContentText(content.contentText);
-    } else if (content.contentPath.isNotEmpty) {
-      validation = ContentValidators.validateFilePath(content.contentPath);
+    } else if (content.contentPath?.isNotEmpty == true) {
+      validation = ContentValidators.validateFilePath(content.contentPath!);
     } else {
       validation =
           const ValidationResult.error('Conteúdo deve ter texto ou arquivo');
@@ -399,6 +399,7 @@ class MusicRepositoryImpl implements MusicRepository {
       final String id = content.id.isEmpty ? _uuid.v4() : content.id;
       final now = DateTime.now();
 
+      // For text content, we don't need a contentPath
       final contentWithId = MusicContent(
         id: id,
         musicId: content.musicId,
@@ -430,8 +431,8 @@ class MusicRepositoryImpl implements MusicRepository {
     ValidationResult validation;
     if (content.contentText != null && content.contentText!.isNotEmpty) {
       validation = ContentValidators.validateContentText(content.contentText);
-    } else if (content.contentPath.isNotEmpty) {
-      validation = ContentValidators.validateFilePath(content.contentPath);
+    } else if (content.contentPath?.isNotEmpty == true) {
+      validation = ContentValidators.validateFilePath(content.contentPath!);
     } else {
       validation =
           const ValidationResult.error('Conteúdo deve ter texto ou arquivo');
